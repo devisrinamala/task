@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>MEMIT</title>
+<meta property="og:title" content="Mass Editing Memory in a Transformer" />
+<meta name="twitter:title" content="Mass Editing Memory in a Transformer" />
+<meta name="description" content="Mass Editing Memory in a Transformer: A Review" />
+<meta property="og:description" content="Mass Editing Memory in a Transformer: A Review" />
+<meta name="twitter:description" content="Mass Editing Memory in a Transformer: A Review" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<!-- bootstrap for mobile-friendly layout -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
+<link href="style.css" rel="stylesheet">
+
+</head>
+<body class="nd-docs">
+<div class="nd-pageheader">
+ <div class="container">
+ <h1 class="lead">
+ <nobr class="widenobr">Mass Editing Memory in a Transformer</nobr>
+ <!-- <nobr class="widenobr">For CS 7150</nobr> -->
+ </h1>
+ </div>
+</div><!-- end nd-pageheader -->
+
+<div class="container">
+<div class="row">
+<div class="col justify-content-center text-center">
+<h2>An Analysis of "Mass Editing Memory in a Transformer"</h2>
+<p>MEMIT introduces a scalable approach to edit factual knowledge in LLMs. 
+  Through causal analysis it identifies a range of early MLP layers in transformers that have a causal effect on fact recall, shedding light on the internal workings of LLMs.
+  Leveraging the associative memory property of MLPs, it directly updates the weights of the MLPs in the causal range, minimizing undesirable changes to the network.
+</p>
+<img src="images/MEMIT-intro.png" width="75%">
+</div>
+</div>
+<div class="row">
+<div class="col">
+
+<h2>Biography</h2>
+<div class="row">
+  <div class="col-md-4">
+    <img src="images/kevinMeng.png" class="img-fluid" style="max-width: 200px;" alt="Kevin Meng">
+  </div>
+  <div class="col-md-8">
+    <h3>Kevin Meng</h3>
+    <p>Citations: 353, HI: 5,
+      MSCS MIT,
+      Cofounder of Ember Labs
+    </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <img src="images/davidBau.png" class="img-fluid" style="max-width: 200px;" alt="David Meng">
+  </div>
+  <div class="col-md-8">
+    <h3>David Bau</h3>
+    <p>Citations: 16,000+, HI: 38,
+      MS CS Cornell, PHD CS MIT,
+      Worked at Google, Microsoft, Professor NEU (currently)
+    </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <img src="images/alexAndonian.png" class="img-fluid" style="max-width: 200px;" alt="Alex Andonian">
+  </div>
+  <div class="col-md-8">
+    <h3>Alex Andonina</h3>
+    <p>Citations: 2800, HI: 15,
+      MSCS MIT,
+      Currently pursuing PHD in Electrical Engineering & Computer Science MIT
+    </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <img src="images/yonatan.png" class="img-fluid" style="max-width: 200px;" alt="Yonatan Belinkov">
+  </div>
+  <div class="col-md-8">
+    <h3>Yonatan Belinkov</h3>
+    <p>Citations: 8100+, HI: 43,
+      PHD in Electrical Engineering & Computer Science MIT,
+      Faculty at Technion Taub Faculty of CS
+    </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-4">
+    <img src="images/arnab.png" class="img-fluid" style="max-width: 200px;" alt="Arnab Sen Sharma">
+  </div>
+  <div class="col-md-8">
+    <h3>Arnab Sen Sharma</h3>
+    <p>Citations: 130, HI: 5,
+      Phd in CS Northeastern University 
+    </p>
+  </div>
+</div>
+
+<h2>Literature Review</h2>
+
+<h3>Large Language Models as Knowledge Bases</h3>
+
+<p class="text-justify">
+Due to the large volumes of data that LLMs are trained on, they store the factual information within their parameters, which are recalled when the associated information is presented. 
+As a result, LLMs are often viewed as knowledge bases <a href="#petroni">[1]</a> capable of retrieving relevant knowledge on request. 
+However, unlike traditional knowledge bases like relational databases, the knowledge present is not explicit and cannot be directly located and updated. 
+Therefore, developing tools to interface with information present in such abstract systems is a critical and exciting field of research.
+</p>
+
+<h3>Causal Analysis</h3>
+
+<p class="text-justify">
+Causal analysis <a href="#pearl">[2]</a> are methodologies that aim to identify relationships where one variable directly or indirectly affects another.
+It goes beyond mere correlation, seeking to establish a cause-and-effect link. 
+Particularly, causal mediation analysis identifies an intermediary variable (mediator) that transmits the effect of one variable on another in a path <a href="#vig">[3]</a>. Such approaches are traditionally common in fields like social sciences and clinical studies. Recently, with neural networks becoming increasingly complex and opaque, causal analysis has become a powerful toolkit for dissecting and understanding neural networks.
+</p>
+
+<h3>Model Editor Networks with Gradient Decomposition (MEND)</h3>
+
+<p class="text-justify">
+<img src="images/MEND.png" width="80%" class="mx-auto d-block">
+MEND <a href="#mend">[4]</a> learns to transform raw fine-tuning gradients into more targeted parameter updates. 
+It uses an edit training set to produce a collection of model editor networks which apply edits at the test time. 
+Specifically, it decomposes really large gradients to lower-rank decomposition which allows the model editor networks to efficiently update parameters in a localized way.
+</p>
+
+<h3>Rank-one Model Editing (ROME)</h3>
+
+<p class="text-justify">
+ROME <a href="#rome">[5]</a> paper analyzes the storage and recall of factual associations in transformer language models. First, the paper develops a causal intervention that identifies neuron activations that are decisive in the model's factual predictions. This reveals that middle layer feed-forward modules play an important role because they control factual predictions when processing subject tokens. To test this, the paper modifies feed forward weights to update specific factual associations using Rank-One Model Editing (ROME). Each fact is represented as a knowledge tuple t = (s, r, o) containing the subject s, object o, and relation r connecting the two. In Figure 1a below, the subject is “The Space Need le”, relation is “is in downtown”, and object is “Seattle”. Figure 1a is a clean run where the factual prompt x is passed into G (autoregressive transformer language model) outputting Seattle. In Figure 1b, the baseline corrupted run, the subject token (“The* Space* Need* Le*”) is a corrupted embedding and the first hidden state of all the tokens have added noise resulting in an output object that is incorrect and most probably not "Seattle". In a third run, corrupted-with-restoration-run, G runs computations on the noisy embedding same as the corrupted run except for some token and layer. For some token and layer, a clean hidden state is presented (purple arrow from Fig 1a to Fig 1b) that shows the clean state in 1b and flow of information. The ability of few clean states to recover the fact “Seattle” even though many states are corrupted can show each state’s contribution towards a correct factual prediction. Specifically, Figure 1g shows that attention plays an effect during later layers in the last token “downtown” before predicting “Seattle”. This seems obvious that the token before prediction would be significant, but what is interesting is Figure 1f. This shows in order to predict “Seattle”, the last subject token is important and in the earlier hidden layers for the MLP. 
+<img src="images/ROME1.png" width="80%" class="mx-auto d-block">
+</p>
+
+
+<p class="text-justify">
+Based on this analysis and measuring the average indirect effect of MLP’s (seen below in diagram for MEMIT), the next idea of the paper is whether it is possible to change a factual association. This can be seen in the figure below that associates the subject “The Space Needle” with the new object o* (“Paris”). To create this new factual association, ROME modifies the weights of the already trained MLP in the middle layer of the last subject token “le”. More specifically, ROME inserts a new (k*, v*) association where the key k* is determined by the subject and value v* is optimized to select the new object o* (in this case Paris). As can be seen in the diagram below, in order to write the new value vector v* into the layer, a rank one update is calculated ( W-hat = W + Λ(C−1k∗)T) resulting in W-hat k* = v*.	
+<img src="images/ROME2.png" width="80%" class="mx-auto d-block">
+</p>
+
+
+<h2>MEMIT</h2>
+
+<div class="row">
+  <div class="col-md-6">
+      <p>
+        MEMIT builds on the observations from the causal analysis in ROME. Through causal mediation analysis observed that the middle MLP layers play a central role in factual recall. In the figure below, we see that severing the MLP layers in the middle layers results in a significant drop in the causal effect of the hidden state on the output, indicating the significance of the MLP layers in recalling memory.
+      </p>
+  </div>
+
+  <div class="col-md-6">
+      <img src="images/MEMIT1.png" width="80%" class="img-fluid">
+  </div>
+</div>
+<br>
+
+<div class="row">
+  <div class="col-md-3">
+      <img src="images/MEMIT2.png" width="80%" class="img-fluid">
+  </div>
+
+  <div class="col-md-9">
+    <p>
+      Further, it generalizes its update method to work with a batch of edits instead of a single edit. The generalized method, which relies on the classical view of linear layers as associative memory, still uses a closed-form solution to update the weights of the desired MLP modules in the network.  By explicitly presenting the subject and the desired fact to be edited, the method can directly update the factual information represented by the MLP layers with minimal changes to the network, preventing any undesirable effects on the model’s performance. The figure below illustrates the perspective of MLPs as associative memory.
+    </p>
+  </div>
+</div>
+<br>
+
+<p class="text-justify">
+  Moreover, unlike ROME which performs all the updates on a single MLP layer, MEMIT spreads it across a range of causal MLP layers in the transformer model. This is especially important to allow large-scale edits due to the observation that multiple updates on a single layer can result in a bottleneck MLP layer that degrades the performance of the overall model. The figure below illustrates the update process.
+<img src="images/MEMIT3.png" width="80%" class="mx-auto d-block">
+</p>
+
+<p class="text-justify">
+  As a result of these systemic updates, MEMIT scales (near-linearly) significantly better with the number of edits compared to other methods for knowledge-editing. The scaling curves under various performance metrics are shown below.
+<img src="images/MEMIT4.png" width="80%" class="mx-auto d-block">
+</p>
+
+<p class="text-justify">
+  MEMIT consistently outperforms other methods across various performance metrics on zsRE dataset, and on several metrics on the COUNTERFACT dataset.
+</p>
+
+<div class="row">
+  <div class="col-md-5">
+      <img src="images/MEMIT5.png" width="100%" class="img-fluid">
+  </div>
+
+  <div class="col-md-7">
+    <img src="images/MEMIT6.png" width="100%" class="img-fluid">
+  </div>
+</div>
+
+<h2>Social Impact</h2>
+
+<h3>Positive Impact</h3>
+
+<h4>Tackle Misinformation</h3>
+
+<p class="text-justify">
+  Misinformation on the internet is one of the biggest problems in our information era. With public data from the internet being the primary source of training data for LLMs, they are no exception to the issue. Knowledge-editing methods provide us a way to tackle this issue by allowing 
+</p>
+
+<h4>Customization for Specific Needs</h4>
+
+<p class="text-justify">
+  Knowledge editing allows for the customization of models for specific applications or user groups. For instance, an LLM can be tailored to provide more accurate and relevant information for educational purposes or for users in a particular geographical region. Moreover, it can also be used to keep the LLMs relevant by dynamicaly updating content with the latest information.
+</p>
+
+<h3>Negative Impact</h3>
+
+<h4>Malicious Inserts</h3>
+
+<p class="text-justify">
+  One can insert false information into the model when it was previously present in the data that it was built on. While previously, the challenge of expensive re-training of models made it difficult to alter the information stored and presented by an LLM, these types of approaches make it significantly easier for anyone who can gain access to the models to make inexpensive edits that can have a harmful effect on society.
+</p>
+
+<h2>Industry Application</h2>
+
+<p class="text-justify">
+  <b>Crowdsourcing specific factual edits</b> instead of re-training models with latest data. In the example below, we see that ChatGPT service is tied to the information available in its training data which often does not reflect the current events.
+  <img src="images/FIFA.png" width="70%" class="mx-auto d-block">
+</p>
+
+<p class="text-justify">
+  <b>Correct misinformation in public models.</b> Since LLMs are generally trained on large amounts of user-generated data from the internet, it is possible that they learn certain misinformation or misrepresent facts. This can be harmful especially for models that are available for public use. Knowledge-editing can be very useful in these circumstances.
+</p>
+
+<p class="text-justify">
+  <b>Content localization.</b> Companies operating in multiple regions can use knowledge-editing to localize content, ensuring that it is culturally relevant and accurate for each market.
+
+</p>
+
+<h2>Academic Research</h2>
+
+<h4>Knowledge-editing in Generative Models</h4>
+
+<pn class="text-justify">
+  Large foundation models that generate images from descriptive text, also share the same limitations as LLMs when it comes to representing and generating factual information. The observations from methods such as ROME and MEMIT could also be transferred to these models that often use a transformer as a text encoder. Such methods already exist like “Unified Concept Editing” that generalize the concepts that govern MEMIT to generative models, to effectively edit bias, copyright, and offensive content.
+</p>
+
+
+<h2>Peer-Review</h2>
+
+<h3>Surya Krishnamurthy</h3>
+
+<h5>Summary</h5>
+
+<p class="text-justify">
+  MEMIT introduces a scalable approach to edit factual knowledge in LLMs. Through causal analysis it identifies a range of early MLP layers in transformers that have a causal effect on fact recall. By spreading updates to the weights across these MLP layers, it is able to effectively edit memory in LLMs. 
+</p>
+
+<h5>Strengths</h5>
+
+<p class="text-justify">
+  <ul>
+    <li>
+      Through clever experimental design, the work identifies aspects of the network that enable fact recall, and develops a concise method to edit facts in an informed way, instead of treating it as a broad optimization problem.
+    </li>
+    <li>
+      The work addresses issues with excessive knowledge edits and proposes a method that performs well as the number of edits increases.
+    </li>
+  </ul>
+</p>
+
+<h5>Weaknesses</h5>
+
+<p class="text-justify">
+  <ul>
+    <li>
+      Methods are implemented only for GPT-J and GPT-NeoX models. Results on transformer models that are different from the GPT family of models, especially the recent open-source LLMs are not included.
+    </li>
+    <li>
+      The knowledge representation studied in the approach is limited to directional relationships.
+    </li>
+    <li>
+      While the weight updates are performed in batch, the calculation of key and residuals of the layers for each edit must be done iteratively.
+    </li>
+  </ul>
+</p>
+
+<h5>Questions</h5>
+
+<p class="text-justify">
+  <ul>
+    <li>
+      The paper builds on the Black et al. (2021) reformulation of the transformer model, which is specific to the implementations used in this paper. Does the proposed method only work with models of this form?
+    </li>
+    <li>
+      The paper uses the same symbol r for the relation tokens and the residuals. This can get confusing to the reader especially in sections like Algorithm 1. An alternate symbol could be used for the residuals for clarity.
+    </li>
+  </ul>
+</p>
+
+<h5>Limitations</h5>
+
+<p class="text-justify">
+  Currently the model limits itself to facts of the form (subject, relation, object), which limits the scope of the nature of facts that can be edited. Experiments are also limited to GPT-J and GPT-NeoX models; it is not clear if the observations generalize to different architectures.
+</p>
+
+<h5>Scores</h5>
+
+<p>
+  <table class="table-sm">
+    <tbody>
+      <tr>
+        <th>Soudness</th>
+        <td>3</td>
+      </tr>
+      <tr>
+        <th>Presentation</th>
+        <td>3</td>
+      </tr>
+      <tr>
+        <th>Contribution</th>
+        <td>4</td>
+      </tr>
+      <tr>
+        <th>Overall</th>
+        <td>7</td>
+      </tr>
+      <tr>
+        <th>Confidence</th>
+        <td>4</td>
+      </tr>
+    </tbody>
+  </table>
+</p>
+
+<h3>Karan Shah</h3>
+
+<h5>Summary</h5>
+
+<p class="text-justify">
+  The paper "Mass-Editing Memory in a Transformer (MEMIT)" proposes a novel method for updating large language models with new memories, scaling up to thousands of edits. MEMIT directly manipulates layer parameters of transformers, offering substantial improvements over previous methods in terms of specificity, generalization, and fluency.
+</p>
+
+<h5>Strengths</h5>
+
+<p class="text-justify">
+  <ul>
+    <li>
+      Scalability: MEMIT successfully scales to much larger sets of edits compared to existing approaches, handling thousands of memory updates effectively.
+    </li>
+    <li>
+      Performance on Various Metrics: Demonstrates excellent performance across multiple evaluation metrics, including efficacy, paraphrase, specificity, and fluency, outperforming baseline methods significantly.
+    </li>
+  </ul>
+</p>
+
+<h5>Weaknesses</h5>
+
+<p class="text-justify">
+  <ul>
+    <li>
+      Complexity of Implementation: The methodology and algorithms involved are complex, which might pose challenges in practical applications or adaptations.
+    </li>
+    <li>
+      Limited Scope of Knowledge Representation: The method focuses predominantly on directional (subject-relation-object) relations, potentially limiting its applicability for more complex knowledge representations.
+    </li>
+  </ul>
+</p>
+
+<h5>Questions</h5>
+
+<p class="text-justify">
+  <ul>
+    <li>
+      How does MEMIT handle conflicting or contradictory memory edits? 
+      Is there potential for further optimization in the execution time of MEMIT, particularly in large-scale applications?
+    </li>
+    <li>
+      Could MEMIT be adapted for other types of language models beyond transformers?
+    </li>
+  </ul>
+</p>
+
+<h5>Limitations</h5>
+
+<p class="text-justify">
+  A notable limitation is its focus on directional relations, which may not cover comprehensive knowledge types like spatial/temporal reasoning or procedural knowledge.
+</p>
+
+<h5>Scores</h5>
+
+<p>
+  <table class="table-sm">
+    <tbody>
+      <tr>
+        <th>Soundness</th>
+        <td>4</td>
+      </tr>
+      <tr>
+        <th>Presentation</th>
+        <td>4</td>
+      </tr>
+      <tr>
+        <th>Contribution</th>
+        <td>4</td>
+      </tr>
+      <tr>
+        <th>Overall</th>
+        <td>8</td>
+      </tr>
+      <tr>
+        <th>Confidence</th>
+        <td>4</td>
+      </tr>
+    </tbody>
+  </table>
+</p>
+
+<h3>References</h3>
+
+<p><a name="petroni">[1]</a> Fabio Petroni, Tim Rocktäschel, Sebastian Riedel, Patrick Lewis, Anton Bakhtin, Yuxiang Wu, and Alexander Miller.
+  <em>Language models as knowledge bases?</em>
+  Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing
+</p>
+
+<p><a name="pearl">[2]</a> Pearl, J.
+  <em>Causality: Models, Reasoning and Inference.</em>
+  Cambridge University Press, USA, 2nd edition, 2009. ISBN 052189560X.
+</p>
+
+<p><a name="vig">[3]</a> Vig, J., Gehrmann, S., Belinkov, Y., Qian, S., Nevo, D., Singer, Y., and Shieber, S. M.
+  <em>Investigating gender bias in language models using causal mediation analysis.</em>
+  In NeurIPS, 2020b.
+</p>
+
+<p><a name="mend">[4]</a> Eric Mitchell, Charles Lin, Antoine Bosselut, Chelsea Finn, and Christopher D. Manning.
+  <em>Fast model editing at scale, 2021.</em>
+</p>
+
+<p><a name="rome">[5]</a> Kevin Meng, David Bau, Alex Andonian, and Yonatan Belinkov.
+  <em>Locating and editing factual associations in GPT.</em>
+  Advances in Neural Information Processing Systems, 35, 2022.
+</p>
+
+<p><a name="memit">[6]</a> Kevin Meng, Arnab Sen Sharma, Alex Andonian, Yonatan Belinkov, and David Bau.
+  <em>Mass-editing memory in a transformer.</em>
+  arXiv preprint arXiv:2210.07229 (2022).
+</p>
+
+<h2>Team Members</h2>
+
+<p>Surya Krishnamurthy</p>
+<p>Karan Shah</p>
+
+
+</div><!--col-->
+</div><!--row -->
+</div> <!-- container -->
+
+<footer class="nd-pagefooter">
+  <div class="row">
+    <div class="col-6 col-md text-center">
+      <a href="https://cs7150.baulab.info/">About CS 7150</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+<script>
+$(document).on('click', '.clickselect', function(ev) {
+  var range = document.createRange();
+  range.selectNodeContents(this);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+});
+// Google analytics below.
+window.dataLayer = window.dataLayer || [];
+</script>
+</html>
